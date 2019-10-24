@@ -8,7 +8,8 @@ module.exports = function (ctx) {
     boot: [
       'i18n',
       'axios',
-      'showNotif'
+      'showNotif',
+      'createToken'
     ],
 
     css: [

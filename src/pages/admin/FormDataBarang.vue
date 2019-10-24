@@ -22,6 +22,7 @@
                   v-model="dataSend.satuan"
                   filled
                 />
+                <q-input label="Stock" type="number" v-model="dataSend.stok" filled></q-input>
                 <q-input label="Keterangan" type="textarea" v-model="dataSend.keterangan" filled></q-input>
                 <div class="col">
                   <q-input
@@ -53,6 +54,7 @@ export default {
         kategori: 'Pupuk',
         harga: 0,
         satuan: null,
+        stok: 0,
         keterangan: null
       },
       linkPreview: '',
@@ -67,6 +69,7 @@ export default {
         kategori: 'Pupuk',
         harga: 0,
         satuan: null,
+        stock: 0,
         keterangan: null
       }
       this.foto = ''
@@ -76,8 +79,10 @@ export default {
     onSubmit () {
       const formData = new FormData()
       formData.append('foto', this.foto)
-      formData.append('data', JSON.stringify(this.dataSend))
-      this.$axios.post('barang', formData)
+      formData.append('data', JSON.stringify(Object.assign(this.dataSend, this.$createToken().distributor)))
+      this.$axios.post('barang', formData, {
+        headers: this.$createToken().token
+      })
         .then(res => {
           if (res.data.error) {
             this.$showNotif(res.data.message, 'negative')

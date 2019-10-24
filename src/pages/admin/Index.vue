@@ -32,6 +32,7 @@
               <q-td key="harga" :props="props">{{ props.row.harga }}</q-td>
               <q-td key="satuan" :props="props">{{ props.row.satuan }}</q-td>
               <q-td key="kategori" :props="props">{{ props.row.kategori }}</q-td>
+              <q-td key="stok" :props="props">{{ props.row.stok }}</q-td>
               <q-td key="keterangan" :props="props">{{ props.row.keterangan }}</q-td>
               <q-td key="action" :props="props">
                 <q-card-actions align="around" class="row q-col-gutter-md no-wrap">
@@ -66,7 +67,7 @@
     </q-card>
     <q-dialog v-model="detailDialog" v-if="detailDialog">
       <q-card style="width: 400px; max-width: 60vw;">
-        <q-img src="https://media-cdn.tripadvisor.com/media/photo-s/0a/47/a8/91/chicken-salad-sandwich.jpg" />
+        <q-img :src="baseURL + activeData.foto" placeholder-src="statics/default-placeholder-1024x1024-570x321.png"/>
 
         <q-card-section>
           <q-btn
@@ -87,7 +88,7 @@
         </q-card-section>
 
         <q-card-section>
-          <div class="text-subtitle1">{{ activeData.kategori }} ({{ activeData.satuan }})</div>
+          <div class="text-subtitle1">{{ activeData.kategori }} ({{ activeData.stok + ' ' + activeData.satuan }})</div>
         </q-card-section>
 
         <q-card-section>
@@ -123,13 +124,15 @@ export default {
         { name: 'harga', align: 'center', label: 'Harga', field: 'harga' },
         { name: 'satuan', align: 'center', label: 'Satuan', field: 'satuan' },
         { name: 'kategori', align: 'center', label: 'Kategori', field: 'kategori' },
+        { name: 'stok', align: 'center', label: 'Stok', field: 'stok' },
         { name: 'keterangan', align: 'center', label: 'Keterangan', field: 'keterangan' },
         { name: 'action', align: 'center', label: 'Action', field: 'action' }
       ],
       data: [],
       original: [],
       detailDialog: false,
-      activeData: null
+      activeData: null,
+      baseURL: 'http://testing.kartupetaniberjaya.com/admin/gambar_barang/'
     }
   },
   created () {
@@ -144,9 +147,13 @@ export default {
   methods: {
     getData () {
       try {
-        this.$axios.get('barang')
+        this.$axios.get('barang', {
+          headers: this.$createToken().token
+        })
           .then(res => {
             this.original = res.data.result
+          }).catch(error => {
+            console.log(error)
           })
       } catch (error) {
         console.log(error)
@@ -253,7 +260,9 @@ export default {
         persistent: true
       }).onOk(() => {
         try {
-          this.$axios.delete('barang/' + id)
+          this.$axios.delete('barang/' + id, {
+            headers: this.$createToken().token
+          })
             .then(res => {
               if (res.data.status) {
                 this.$showNotif(res.data.message, 'positive')

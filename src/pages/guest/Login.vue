@@ -30,12 +30,6 @@
                         <q-icon name="lock" />
                       </template>
                     </q-input>
-                    <q-input
-                      filled
-                      ref="file"
-                      type="file"
-                      hint="Upload Gambar Barang"
-                    />
                   </q-card-section>
                   <q-card-section>
                     <div class="row q-col-gutter-xs">
@@ -82,21 +76,28 @@ export default {
         this.showNotif('Username/Password Tidak Boleh Kosong', 'negative')
         return
       }
+      let basicAuth = 'Basic ' + window.btoa(this.username + ':' + this.password)
+      this.$axios.defaults.headers.common['Authorization'] = basicAuth
       this.$axios
-        .post('user/login', {
-          username: this.username,
-          password: this.password
-        })
+        .post('users/signin')
         .then(res => {
           if (res.data.err) {
             this.showNotif(res.data.msg, 'negative')
           } else {
-            this.$q.localStorage.set('user', res.data.token)
-            this.$router.push('/')
+            console.log(res.data)
+            let data = res.data.result
+            let dataUser = {
+              _id: data._id,
+              nama: data.nama
+            }
+            this.$q.localStorage.set('user', res.data.result.token)
+            this.$q.localStorage.set('username', this.username)
+            this.$q.localStorage.set('dataUser', dataUser)
+            this.$router.push({ name: 'dashboard' })
           }
         })
         .catch((err) => {
-          this.showNotif(err.toString(), 'red')
+          this.showNotif(err.toString(), 'negative')
         })
     },
     showNotif (message, jenis) {

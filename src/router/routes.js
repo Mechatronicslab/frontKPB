@@ -12,7 +12,8 @@ const routes = [
       { path: 'dashboard', name: 'dashboard', component: () => import('pages/admin/Index.vue') },
       { path: 'form', name: 'formbarang', component: () => import('pages/admin/FormDataBarang.vue') },
       { path: 'edit/:id', name: 'formEditBarang', component: () => import('pages/admin/FormEditDataBarang.vue') }
-    ]
+    ],
+    requiredAuth: true
   },
   // main / core app
   {

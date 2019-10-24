@@ -4,7 +4,7 @@
       <div class="col-md-12">
         <q-card class="bg-white text-black q-pa-lg">
           <q-form @submit="onSubmit">
-            <div class="row text-blue-grey-10">
+            <div class="row text-blue-grey-10 justify-between">
               <div class="col-md-6 col-xs-12 q-gutter-y-lg">
                 <div class="text-h6 text-weight-light">Input Data Barang</div>
                 <q-separator/>
@@ -22,8 +22,9 @@
                   v-model="dataSend.satuan"
                   filled
                 />
+                <q-input label="Stock" type="number" v-model="dataSend.stok" filled></q-input>
                 <q-input label="Keterangan" type="textarea" v-model="dataSend.keterangan" filled></q-input>
-                <!-- <div class="col">
+                <div class="col">
                   <q-input
                     @input="selectFile"
                     filled
@@ -31,9 +32,14 @@
                     type="file"
                     hint="Upload Gambar Barang"
                   />
-                  <q-img v-if="!reseted" :src="linkPreview"></q-img>
-                </div> -->
+                </div>
                 <q-btn type="submit" unelevated color="blue-grey-10" no-caps>Simpan</q-btn>
+              </div>
+              <div class="col-md-5 col-xs-12 q-gutter-y-lg">
+                <div class="text-h6 text-weight-light">Input Data Barang</div>
+                <q-separator/>
+                <q-img v-if="!reseted" :src="linkPreview"></q-img>
+                <q-img v-if="!imageChanged" :src="baseURL + dataSend.foto" placeholder-src="statics/default-placeholder-1024x1024-570x321.png" class="rounded"/>
               </div>
             </div>
           </q-form>
@@ -52,12 +58,16 @@ export default {
         namaBarang: null,
         kategori: 'Pupuk',
         harga: 0,
+        stok: 0,
         satuan: null,
-        keterangan: null
+        keterangan: null,
+        foto: null
       },
       linkPreview: '',
       foto: '',
-      reseted: true
+      reseted: true,
+      baseURL: 'http://testing.kartupetaniberjaya.com/admin/gambar_barang/',
+      imageChanged: false
     }
   },
   created () {
@@ -69,8 +79,10 @@ export default {
         namaBarang: null,
         kategori: 'Pupuk',
         harga: 0,
+        stok: 0,
         satuan: null,
-        keterangan: null
+        keterangan: null,
+        foto: null
       }
       this.foto = ''
       this.linkPreview = ''
@@ -78,22 +90,36 @@ export default {
     },
     getData () {
       try {
-        this.$axios.get('barang/' + this.$route.params.id)
+        this.$axios.get('barang/' + this.$route.params.id, {
+          headers: this.$createToken().token
+        })
           .then(res => {
             let data = res.data.result
             this.dataSend.namaBarang = data.namaBarang
             this.dataSend.kategori = data.kategori
             this.dataSend.harga = data.harga
+            this.dataSend.stok = data.stok
             this.dataSend.satuan = data.satuan
             this.dataSend.keterangan = data.keterangan
+            this.dataSend.foto = data.foto
           })
       } catch (error) {
         console.log(error)
       }
     },
     onSubmit () {
-      this.$axios.put('barang/' + this.$route.params.id, this.dataSend)
+      const formData = new FormData()
+      if (this.imageChanged) {
+        formData.append('foto', this.foto)
+      } else {
+        formData.append('foto', true)
+      }
+      formData.append('data', JSON.stringify(this.dataSend))
+      this.$axios.put('barang/' + this.$route.params.id, formData, {
+        headers: this.$createToken().token
+      })
         .then(res => {
+          console.log(res)
           if (res.data.error) {
             this.$showNotif(res.data.message, 'negative')
           } else {
@@ -109,6 +135,7 @@ export default {
       this.foto = this.$refs.file.$refs.input.files[0]
       this.linkPreview = url
       this.reseted = false
+      this.imageChanged = true
     }
   },
   computed: {
